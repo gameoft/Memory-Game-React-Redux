@@ -2,9 +2,20 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './components/App';
-
-require('./assets/app.scss');
+import './assets/app.scss';
+import { createStore } from 'redux'
+import memoryGame from './reducers'
+import { shuffleCards } from './actions';
+import { Provider } from 'react-redux'
 
 console.log('hi');
 
-ReactDOM.render(<App />, document.getElementById('app'));
+let store = createStore(memoryGame);
+//store.dispatch(shuffleCards());
+
+//ReactDOM.render(<App />, document.getElementById('app'));
+ReactDOM.render(
+    <Provider store={store}>
+      <App />
+    </Provider>
+    , document.getElementById('app'));

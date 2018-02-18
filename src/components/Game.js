@@ -1,81 +1,60 @@
 import React, {Component} from 'react';
 import Card from './Card';
+import { connect } from 'react-redux'
+import { flipUpCard, checkMatchedPair, initGame } from '../actions';
 
-/**
- * Randomize array element order in-place.
- * Using Durstenfeld shuffle algorithm.
- */
-function shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        let j = Math.floor(Math.random() * (i + 1));
-        let temp = array[i];
-        array[i] = array[j];
-        array[j] = temp;
-    }
-    return array;
-}
 
-function initialCards() {
-    return [
-      {value: 2, matched: false, flipped: false},
-      {value: 4, matched: false, flipped: false},
-      {value: 1, matched: false, flipped: false},
-      {value: 1, matched: false, flipped: false},
-      {value: 3, matched: false, flipped: false},
-      {value: 4, matched: false, flipped: false},
-      {value: 2, matched: false, flipped: false},
-      {value: 3, matched: false, flipped: false},
-      {value: 5, matched: false, flipped: false},
-      {value: 5, matched: false, flipped: false},
-      {value: 6, matched: false, flipped: false},
-      {value: 6, matched: false, flipped: false}
-    ];
+ class Game extends Component {
+  componentWillMount() {
+    //setInterval(this.props.onCheckForMatchedPair,5000);
   }
 
-   export default class Game extends Component {
+  componentDidUpdate(){
+
+    var pippo = '';
+  }
+
      constructor(props) {
        super(props);
        this.renderCards = this.renderCards.bind(this);
        this.checkMatch = this.checkMatch.bind(this);
-       this.reset = this.reset.bind(this);
-  
-       this.state = {
-         cards: shuffleArray(initialCards()),
-         lastCard: null,
-         locked: false,
-         matches: 0,
-         nromoves: 0
-       };
      }
   
      checkMatch(value, id) {
-       if (this.state.locked) {
+       if (this.props.locked) {
          return;
        }
-  
-       let cards = this.state.cards;
-       cards[id].flipped = true;
-       this.setState({cards, locked: true});
-       if (this.state.lastCard) {
-        let nromoves = this.state.nromoves;
-        if (value === this.state.lastCard.value) {
-           let matches = this.state.matches;
-           cards[id].matched = true;
-           cards[this.state.lastCard.id].matched = true;
-           this.setState({cards, lastCard: null, locked: false, matches: matches + 1, nromoves: nromoves + 1});
-         } else {
-           setTimeout(() => {
-             cards[id].flipped = false;
-             cards[this.state.lastCard.id].flipped = false;
-             this.setState({cards, lastCard: null, locked: false, nromoves: nromoves + 1});
-           }, 1000);
-         }
-       } else {
-        this.setState({
-           lastCard: {id, value},
-           locked: false
-         });
-       }
+       
+       this.props.onCardClicked(id);
+       let cards = this.props.cards;
+      //  if (this.props.locked) {
+      //   setTimeout(() => {
+      //     this.props.flipDownCards(id);
+      //   }, 1000);
+
+      //  }
+       
+
+      //  if (this.props.lastCard) {
+      //   let nromoves = this.props.nromoves;
+      //   if (value === this.props.lastCard.value) {
+      //      let matches = this.props.matches;
+      //      cards[id].matched = true;
+      //      cards[this.state.lastCard.id].matched = true;
+      //      this.setState({cards, lastCard: null, locked: false, matches: matches + 1, nromoves: nromoves + 1});
+      //    } else {
+      //      setTimeout(() => {
+      //        cards[id].flipped = false;
+      //        cards[this.state.lastCard.id].flipped = false;
+      //        this.setState({cards, lastCard: null, locked: false, nromoves: nromoves + 1});
+      //      }, 1000);
+      //    }
+      //  } else {
+      //   this.setState({
+      //      lastCard: {id, value},
+      //      locked: false
+      //    });
+      //  }
      }
   
      renderCards(cards) {
@@ -92,31 +71,65 @@ function initialCards() {
       });
     }
   
-     reset() {
-       this.setState({
-         cards: shuffleArray(initialCards()),
-         lastCard: null,
-         locked: false,
-         matches: 0,
-         nromoves: 0
-       });
-       
-     }
   
-     render() {
+  
+    render() {
+
        let btnText = 'Reset';
-       if (this.state.matches === this.state.cards.length / 2) {
-         //console.log('mosse finali: ' + this.state.nromoves);  
-         btnText = 'Hai vinto in ' + this.state.nromoves + ' mosse! Gioca ancora?';
+       if (this.props.matches === this.props.cards.length / 2) {
+        //console.log('mosse finali: ' + this.state.nromoves);  
+        btnText = 'Hai vinto in ' + this.props.nromoves + ' mosse! Gioca ancora?';
        }
+      
+      //  let gameStatus = <div className='Game-status'>
+      //                 <div>Turn: {this.props.turnNo}</div>
+      //                 <div>Pairs found: {this.props.pairsFound}</div>
+      //               </div>;
+       
+       
        return (
          <div className="Game">
            <div>
-             <button onClick={this.reset}>{btnText}</button>
+             <button onClick={this.props.onPlayAgain}>{btnText}</button>
            </div>
-           {this.renderCards(this.state.cards)}
+           {this.renderCards(this.props.cards)}
          </div>
        );
      }
-   }
+}
   
+   const mapStateToProps = state => {
+    return {
+      cards: state.cards,
+      turnNo: state.turnNo,
+      gameComplete: state.gameComplete,
+    
+      matches: state.matches,
+      lastCard: state.lastCard,
+      locked: state.locked,
+      nromoves: state.nromoves
+    }
+  }
+  
+  const mapDispatchToProps = dispatch => {
+    return {
+      onCardClicked: id => {
+        dispatch(flipUpCard(id));
+      },
+      flipDownCards: id => {
+        dispatch(flipDownCards(id));
+      },
+      onPlayAgain: () => {
+        dispatch(initGame());
+      }
+
+    }
+  }
+
+  
+  const GameView = connect(
+    mapStateToProps,
+    mapDispatchToProps
+  )(Game)
+  
+  export default GameView;
