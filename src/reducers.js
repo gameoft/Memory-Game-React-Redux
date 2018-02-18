@@ -8,6 +8,7 @@ import { NUM_IMAGES, generateCardSet, shuffleArray } from './cardFunctions';
 const initialState = {
     cards: generateCardSet(),
     lastCard: undefined,
+    secondlastCard: undefined,
     locked: false,
     matches: 0,
     nromoves: 0
@@ -20,8 +21,7 @@ const initialState = {
 function memoryGame(state = initialState, action) {
     switch (action.type) {
         case INIT_GAME:
-             let newstate = Object.assign({}, initialState, { cards: generateCardSet()} );
-             return newstate;
+           return Object.assign({}, initialState, { cards: generateCardSet()} );
      
         case SHUFFLE_CARDS:
             let newCards = [...state.cards];
@@ -29,33 +29,29 @@ function memoryGame(state = initialState, action) {
             return Object.assign({}, state, { cards: newCards } );
     
         case FLIP_UP_CARD:
-            //let newCards1 = [...state.cards];     
-            let newCards1 = Object.assign({}, state.cards ); 
-            newCards1[action.id].flipped = true;    
+            state.cards[action.id].flipped = true;    
             
-            let newValue = newCards1[action.id].value;
             if (state.lastCard) {
                 let nromoves = state.nromoves;
-                if (newValue === state.lastCard.value) {
+                if (state.cards[action.id].value === state.lastCard.value) {
                    let matches = state.matches;
-                   newCards1[id].matched = true;
-                   newCards1[state.lastCard.id].matched = true;
-                   return Object.assign({}, state, { cards: newCards1, locked: false, lastCard: null, matches: matches + 1, nromoves: nromoves + 1 }); 
+                   state.cards[action.id].matched = true;
+                   state.cards[state.lastCard.id].matched = true;
+                   return Object.assign({}, state, { locked: false, lastCard: null, secondlastCard: null, matches: matches + 1, nromoves: nromoves + 1 }); 
                 } else {
-                    return Object.assign({}, state, { cards: newCards1, locked: true  });  
+                    return Object.assign({}, state, { locked: true, secondlastCard: {id:action.id, value:state.cards[action.id].value}  });  
                 }
             } else {
-                return Object.assign({}, state, { locked: false, lastCard: {id:action.id, value:newValue} }); 
+                return Object.assign({}, state, { locked: false, lastCard: {id:action.id, value:state.cards[action.id].value} }); 
             }
 
-            //return Object.assign({}, state, { cards: newCards1, locked: true } );  
         
             case FLIP_DOWN_CARDS:
-                let newCards2 = Object.assign({}, state.cards ); 
-                newCards2[action.id].flipped = false;
-                newCards2[state.lastCard.id].flipped = false;
-                let nromoves = state.nromoves;
-                return Object.assign({}, state, { cards: newCards2, lastCard: null, nromoves: nromoves + 1 }); 
+                state.cards[state.lastCard.id].flipped = false;
+                state.cards[state.secondlastCard.id].flipped = false;
+                
+                //let nromoves = state.nromoves;
+                return Object.assign({}, state, { lastCard: null, secondlastCard: null, nromoves: state.nromoves + 1, locked: false }); 
 
         // if (state.numClicksWithinTurn === 2)
         // {
